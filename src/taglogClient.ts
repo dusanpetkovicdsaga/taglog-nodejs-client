@@ -1,3 +1,4 @@
+import { initConsolLogger } from './consoleLogger'
 import {
   ILogRequest,
   ITaglogConfig,
@@ -25,9 +26,8 @@ export function taglogInit({
     DEFAULT_CHANNEL: defaultChannel,
     SERVER_URL: serverURL
   }
-  if (options.captureConsole) shouldCaptureConsole = options.captureConsole
 
-  return {
+  const logInstance: TagLogInstance = {
     captureException(title, data, channel) {
       captureException(title, data, channel, accessKey)
     },
@@ -38,6 +38,14 @@ export function taglogInit({
       captureRequest(request, channel, accessKey)
     }
   }
+
+  if (options.captureConsole) {
+    shouldCaptureConsole = options.captureConsole
+
+    initConsolLogger(logInstance)
+  }
+
+  return logInstance
 }
 
 function getFirstConfig() {
