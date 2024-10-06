@@ -1,4 +1,5 @@
-import fetch from 'node-fetch'
+import { request as httpsRequest } from 'https'
+import { request as httpRequest } from 'http'
 import { initConsolLogger } from './consoleLogger'
 import {
   ILogRequest,
@@ -136,23 +137,35 @@ function logRequestBeacon({
   tags,
   channel
 }: ILogRequest & { tags?: string[] }) {
-  try {
-    fetch(
-      `${taglogConfig[accessKey].SERVER_URL}/ingest/${
-        channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
-      }`,
-      {
-        method: 'POST',
-        headers: {
-          messageType: logMessageType,
-          accessToken: accessKey,
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ title, data, type, tags })
-      }
-    )
-  } catch (e) {
-    if (!shouldCaptureConsole) console.log(e)
+  const postData = JSON.stringify({ title, data, type, tags })
+
+  const isLocalhost = taglogConfig[accessKey].SERVER_URL.includes('localhost')
+  const request = isLocalhost ? httpRequest : httpsRequest
+
+  const options = {
+    hostname: new URL(taglogConfig[accessKey].SERVER_URL).hostname,
+    port: isLocalhost ? 80 : 443,
+    path: `/api/ingest/${
+      channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
+    }`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData),
+      messageType: logMessageType,
+      accessToken: accessKey,
+      Accept: 'application/json'
+    }
   }
+
+  const req = request(options)
+
+  req.on('error', (e) => {
+    if (!shouldCaptureConsole)
+      console.error(`problem with request: ${e.message}`)
+  })
+
+  // Write data to request body and end the request
+  req.write(postData)
+  req.end()
 }
