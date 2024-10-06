@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { initConsolLogger } from './consoleLogger'
 import {
   ILogRequest,
@@ -128,7 +127,7 @@ export function captureInfo(
   }
 }
 
-function logRequestBeacon({
+async function logRequestBeacon({
   title,
   data = {},
   type,
@@ -137,6 +136,7 @@ function logRequestBeacon({
   channel
 }: ILogRequest & { tags?: string[] }) {
   try {
+    const fetch = (await import('node-fetch')).default
     fetch(
       `${taglogConfig[accessKey].SERVER_URL}/ingest/${
         channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
