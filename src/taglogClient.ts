@@ -142,9 +142,10 @@ function logRequestBeacon({
   const isLocalhost = taglogConfig[accessKey].SERVER_URL.includes('localhost')
   const request = isLocalhost ? httpRequest : httpsRequest
 
+  const serverUrl = new URL(taglogConfig[accessKey].SERVER_URL)
   const options = {
-    hostname: new URL(taglogConfig[accessKey].SERVER_URL).hostname,
-    port: isLocalhost ? 80 : 443,
+    hostname: serverUrl.hostname,
+    port: serverUrl.port || 80,
     path: `/api/ingest/${
       channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
     }`,
