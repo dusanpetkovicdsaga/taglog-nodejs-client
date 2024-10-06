@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "module": "esnext",
+    "module": "commonjs", // Use CommonJS modules for Node.js
     "lib": [
-      "dom",
-      "esnext"
+      "es2017" // Use ES2017 library
     ],
-    "moduleResolution": "node",
-    "jsx": "react",
+    "moduleResolution": "node", // Use Node.js module resolution
     "sourceMap": true,
     "declaration": true,
     "esModuleInterop": true,
@@ -19,7 +17,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es5",
+    "target": "es2017", // Target ES2017
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -28,12 +26,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "example"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "example"]
 }
