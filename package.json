@@ -1,6 +1,6 @@
 {
   "name": "taglog-nodejs-client",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "taglog.io nodejs connection client",
   "author": "dusanpetkovicdsaga",
   "license": "MIT",
