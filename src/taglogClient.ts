@@ -127,7 +127,7 @@ export function captureInfo(
   }
 }
 
-async function logRequestBeacon({
+function logRequestBeacon({
   title,
   data = {},
   type,
@@ -136,7 +136,6 @@ async function logRequestBeacon({
   channel
 }: ILogRequest & { tags?: string[] }) {
   try {
-    const fetch = (await import('node-fetch')).default
     fetch(
       `${taglogConfig[accessKey].SERVER_URL}/ingest/${
         channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
