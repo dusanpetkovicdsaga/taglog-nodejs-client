@@ -6,6 +6,7 @@ import {
   ITaglogConfig,
   ITaglogInit,
   ITagLogRequest,
+  SessionType,
   TagLogInstance
 } from './models'
 
@@ -17,16 +18,34 @@ const TAGLOG_SERVER_URL = 'https://api.taglog.io/api'
 
 let shouldCaptureConsole: boolean = false
 
+const session: SessionType = {
+  __HEADERS__: {},
+  __TAGS__: []
+}
+
 export function taglogInit({
   accessKey,
   defaultChannel,
   serverURL = TAGLOG_SERVER_URL,
-  options = { captureConsole: false }
+  options = { captureConsole: false, autoDetectHeaders: true, tags: [] }
 }: ITaglogInit): TagLogInstance {
   taglogConfig[accessKey] = {
     ACCESS_KEY: accessKey,
     DEFAULT_CHANNEL: defaultChannel,
     SERVER_URL: serverURL
+  }
+
+  if (options.captureConsole) shouldCaptureConsole = options.captureConsole
+
+  session.__HEADERS__ = options.session ? options.session.__HEADERS__ : {}
+  session.__TAGS__ = options.tags || []
+
+  if (options.autoDetectHeaders) {
+    const envHeaders = autoDetectEnv()
+    session.__HEADERS__ = {
+      ...session.__HEADERS__,
+      ...envHeaders
+    }
   }
 
   const logInstance: TagLogInstance = {
@@ -36,12 +55,31 @@ export function taglogInit({
   }
 
   if (options.captureConsole) {
-    shouldCaptureConsole = options.captureConsole
-
     initConsolLogger(logInstance)
   }
 
   return logInstance
+}
+
+export const setEnvSession = (_session: SessionType) => {
+  session.__HEADERS__ = {
+    ...session.__HEADERS__,
+    ..._session.__HEADERS__
+  }
+}
+
+export function autoDetectEnv(): Record<string, string> {
+  const envHeaders: Record<string, string> = {}
+
+  if (process.env.NODE_ENV) {
+    envHeaders['NODE_ENV'] = process.env.NODE_ENV
+  }
+
+  if (process.env.SERVER_HOST) {
+    envHeaders['SERVER_HOST'] = process.env.SERVER_HOST
+  }
+
+  return envHeaders
 }
 
 function getFirstConfig() {
@@ -52,18 +90,41 @@ function getFirstConfig() {
 }
 
 export function captureException(
-  title: string,
-  data?: Record<string, any>,
+  title: string | Error,
+  data?: Record<string, any> | Error,
   channel?: string,
   tags?: string[],
   accessKey?: string
 ): void {
+  let errorData = {}
+  let errorTitle = 'Error'
+
+  if (title instanceof Error) {
+    errorData = {
+      message: title.message,
+      stack: title.stack,
+      name: title.name
+    }
+    errorTitle = title.message
+  } else {
+    errorTitle = title
+    if (data instanceof Error) {
+      errorData = {
+        message: data.message,
+        stack: data.stack,
+        name: data.name
+      }
+    } else {
+      errorData = data || {}
+    }
+  }
+
   const detectedAccessKey = accessKey ? accessKey : getFirstConfig()
 
   if (detectedAccessKey) {
     logRequestBeacon({
-      title,
-      data,
+      title: errorTitle,
+      data: errorData,
       type: 'EXCEPTION',
       channel,
       tags,
@@ -137,7 +198,13 @@ function logRequestBeacon({
   tags,
   channel
 }: ILogRequest & { tags?: string[] }) {
-  const postData = JSON.stringify({ title, data, type, tags })
+  const postData = JSON.stringify({
+    title,
+    data,
+    type,
+    tags: [...tags, ...session.__TAGS__],
+    meta: session.__HEADERS__
+  })
 
   const isLocalhost = taglogConfig[accessKey].SERVER_URL.includes('localhost')
   const request = isLocalhost ? httpRequest : httpsRequest

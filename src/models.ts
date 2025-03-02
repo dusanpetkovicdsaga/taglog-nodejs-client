@@ -5,6 +5,14 @@ export type ITaglogConfig = {
     DEFAULT_CHANNEL: string
   }
 }
+
+export type SessionType = {
+  __HEADERS__: {
+    [key: string]: string
+  }
+  __TAGS__: string[]
+}
+
 export type ILogRequest = {
   title: string
   data?: Record<string, any>
@@ -12,6 +20,7 @@ export type ILogRequest = {
   channel?: string
   accessKey: string
 }
+
 export interface ITagLogRequest {
   method:
     | 'GET'
@@ -37,6 +46,9 @@ export interface ITaglogInit {
   serverURL?: string
   options?: {
     captureConsole?: boolean
+    session?: SessionType
+    autoDetectHeaders?: boolean
+    tags?: string[]
   }
 }
 
