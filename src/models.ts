@@ -3,6 +3,7 @@ export type ITaglogConfig = {
     SERVER_URL: string
     ACCESS_KEY: string
     DEFAULT_CHANNEL: string
+    httpsAgent?: any
   }
 }
 
@@ -49,6 +50,8 @@ export interface ITaglogInit {
     session?: SessionType
     autoDetectHeaders?: boolean
     tags?: string[]
+    key: any
+    cert: any
   }
 }
 

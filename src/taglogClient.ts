@@ -1,5 +1,6 @@
-import { request as httpsRequest } from 'https'
+import { request as httpsRequest, Agent as HttpsAgent } from 'https'
 import { request as httpRequest } from 'http'
+import { readFileSync } from 'fs'
 import { initConsolLogger } from './consoleLogger'
 import {
   ILogRequest,
@@ -27,7 +28,13 @@ export function taglogInit({
   accessKey,
   defaultChannel,
   serverURL = TAGLOG_SERVER_URL,
-  options = { captureConsole: false, autoDetectHeaders: true, tags: [] }
+  options = {
+    captureConsole: false,
+    autoDetectHeaders: true,
+    tags: [],
+    key: undefined,
+    cert: undefined
+  }
 }: ITaglogInit): TagLogInstance {
   taglogConfig[accessKey] = {
     ACCESS_KEY: accessKey,
@@ -56,6 +63,16 @@ export function taglogInit({
 
   if (options.captureConsole) {
     initConsolLogger(logInstance)
+  }
+
+  if (options.key && options.cert) {
+    const httpsAgent = new HttpsAgent({
+      key: readFileSync(options.key),
+      cert: readFileSync(options.cert),
+      minVersion: 'TLSv1.3',
+      maxVersion: 'TLSv1.3'
+    })
+    taglogConfig[accessKey].httpsAgent = httpsAgent
   }
 
   return logInstance
@@ -225,7 +242,8 @@ function logRequestBeacon({
       messageType: logMessageType,
       accessToken: accessKey,
       Accept: 'application/json'
-    }
+    },
+    agent: taglogConfig[accessKey].httpsAgent
   }
 
   const req = request(options)
