@@ -1,4 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios'
+import { AxiosRequestConfig } from './../node_modules/axios/index.d'
+import axios from 'axios'
 import { Agent as HttpsAgent } from 'https'
 import { readFileSync } from 'fs'
 import { initConsolLogger } from './consoleLogger'
@@ -225,7 +226,7 @@ function logRequestBeacon({
   })
 
   const serverUrl = new URL(taglogConfig[accessKey].SERVER_URL)
-  const options: AxiosRequestConfig = {
+  axios({
     url: `${serverUrl}/api/ingest/${
       channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
     }`,
@@ -238,9 +239,7 @@ function logRequestBeacon({
       Accept: 'application/json'
     },
     data: postData
-  }
-
-  axios(options).catch((e) => {
+  }).catch((e) => {
     if (!shouldCaptureConsole)
       console.error(`problem with request: ${e.message}`)
   })
