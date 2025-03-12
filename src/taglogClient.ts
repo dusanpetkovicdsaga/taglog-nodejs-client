@@ -223,7 +223,9 @@ function logRequestBeacon({
     meta: session.__HEADERS__
   })
 
-  const isLocalhost = taglogConfig[accessKey].SERVER_URL.includes('localhost')
+  const isLocalhost =
+    taglogConfig[accessKey].SERVER_URL.includes('localhost') ||
+    taglogConfig[accessKey].httpsAgent
   const request = isLocalhost ? httpRequest : httpsRequest
 
   const serverUrl = new URL(taglogConfig[accessKey].SERVER_URL)
@@ -243,7 +245,9 @@ function logRequestBeacon({
       accessToken: accessKey,
       Accept: 'application/json'
     },
-    agent: taglogConfig[accessKey].httpsAgent
+    ...(taglogConfig[accessKey].httpsAgent
+      ? { agent: taglogConfig[accessKey].httpsAgent }
+      : {})
   }
 
   const req = request(options)
