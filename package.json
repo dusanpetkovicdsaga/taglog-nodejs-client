@@ -53,5 +53,8 @@
   ],
   "bugs": {
     "url": "https://github.com/dusanpetkovicdsaga/taglog-nodejs-client/issues"
+  },
+  "dependencies": {
+    "axios": "^1.8.3"
   }
 }

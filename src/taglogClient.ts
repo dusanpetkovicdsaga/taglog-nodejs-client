@@ -1,5 +1,5 @@
-import { request as httpsRequest, Agent as HttpsAgent } from 'https'
-import { request as httpRequest } from 'http'
+import axios, { AxiosRequestConfig } from 'axios'
+import { Agent as HttpsAgent } from 'https'
 import { readFileSync } from 'fs'
 import { initConsolLogger } from './consoleLogger'
 import {
@@ -73,6 +73,7 @@ export function taglogInit({
       maxVersion: 'TLSv1.3'
     })
     taglogConfig[accessKey].httpsAgent = httpsAgent
+    axios.defaults.httpsAgent = httpsAgent
   }
 
   return logInstance
@@ -223,41 +224,24 @@ function logRequestBeacon({
     meta: session.__HEADERS__
   })
 
-  const isLocalhost =
-    taglogConfig[accessKey].SERVER_URL.includes('localhost') ||
-    taglogConfig[accessKey].httpsAgent
-  const request = isLocalhost ? httpRequest : httpsRequest
-
   const serverUrl = new URL(taglogConfig[accessKey].SERVER_URL)
-  const options = {
-    minVersion: 'TLSv1.3',
-    maxVersion: 'TLSv1.3',
-    hostname: serverUrl.hostname,
-    port: serverUrl.port || 80,
-    path: `/api/ingest/${
+  const options: AxiosRequestConfig = {
+    url: `${serverUrl}/api/ingest/${
       channel ? channel : taglogConfig[accessKey].DEFAULT_CHANNEL
     }`,
     method: 'POST',
+    baseURL: taglogConfig[accessKey].SERVER_URL,
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData),
       messageType: logMessageType,
       accessToken: accessKey,
       Accept: 'application/json'
     },
-    ...(taglogConfig[accessKey].httpsAgent
-      ? { agent: taglogConfig[accessKey].httpsAgent }
-      : {})
+    data: postData
   }
 
-  const req = request(options)
-
-  req.on('error', (e) => {
+  axios(options).catch((e) => {
     if (!shouldCaptureConsole)
       console.error(`problem with request: ${e.message}`)
   })
-
-  // Write data to request body and end the request
-  req.write(postData)
-  req.end()
 }
