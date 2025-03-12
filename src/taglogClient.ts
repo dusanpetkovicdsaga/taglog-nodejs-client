@@ -195,7 +195,7 @@ function logRequestBeacon({
   data = {},
   type,
   accessKey,
-  tags,
+  tags = [],
   channel
 }: ILogRequest & { tags?: string[] }) {
   const postData = JSON.stringify({
