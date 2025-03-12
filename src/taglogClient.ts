@@ -211,6 +211,8 @@ function logRequestBeacon({
 
   const serverUrl = new URL(taglogConfig[accessKey].SERVER_URL)
   const options = {
+    minVersion: 'TLSv1.3',
+    maxVersion: 'TLSv1.3',
     hostname: serverUrl.hostname,
     port: serverUrl.port || 80,
     path: `/api/ingest/${
